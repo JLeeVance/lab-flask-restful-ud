@@ -71,7 +71,7 @@ class NewsletterByID(Resource):
 
     def get(self, id):
 
-        response_dict = Newsletter.query.filter_by(id=id).first().to_dict()
+        newsletters = Newsletter.query.filter_by(id=id).first().to_dict()
 
         response = make_response(
             response_dict,
@@ -79,6 +79,33 @@ class NewsletterByID(Resource):
         )
 
         return response
+    
+    def patch(self, id):
+        
+        newsletter = Newsletter.query.filter_by(id=id).first()
+        
+        if not newsletter:
+            return make_response({'error':'The requested ID was not found.'}, 404)
+        
+        patch_data = request.get_json()
+        for key, value in patch_data.items():
+            setattr(newsletter, key, value)
+        
+        db.session.commit()
+
+        return make_response(newsletter.to_dict(), 202)
+    
+    def delete(self, id):
+
+        newsletter = Newsletter.query.filter_by(id=id).first()
+
+        db.session.delete(newsletter)
+        db.session.commit()
+
+        return make_response({}, 204)
+
+
+
 
 api.add_resource(NewsletterByID, '/newsletters/<int:id>')
 
